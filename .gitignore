@@ -1,0 +1,6 @@
+MLP-20M
+*.csv
+models
+*.ann
+.DS_Store
+__pycache__
