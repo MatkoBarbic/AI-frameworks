@@ -11,7 +11,7 @@ def recommend_movie(image):
     image.save(img_binary, format="PNG")
     
     # Send request to the API
-    response = requests.post("http://127.0.0.1:5000/predict", data=img_binary.getvalue())
+    response = requests.post("http://localhost:5000/predict", data=img_binary.getvalue())
     recommended_titles = response.json()["recommendations"]
 
     recommended_movies = []
@@ -27,4 +27,5 @@ if __name__=='__main__':
                 outputs=['image' for i in range(5)],
                 live=True,
                 description="Upload the movie poster.",
-                ).launch(debug=True, share=True, server_port=7860)
+                ).launch(server_name="0.0.0.0", debug=True, share=True, server_port=7860)
+    

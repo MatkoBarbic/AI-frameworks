@@ -3,7 +3,7 @@ services:
   gradio-app:
     build:
       context: .
-      dockerfile: Dockerfile-api
+      dockerfile: Dockerfile-webapp
     ports:
       - "7860:7860"
     depends_on:
@@ -12,6 +12,6 @@ services:
   annoy-db:
     build:
       context: .
-      dockerfile: Dockerfile-webapp
+      dockerfile: Dockerfile-api
     ports:
       - "5000:5000"
