@@ -11,7 +11,7 @@ def recommend_movie(image):
     image.save(img_binary, format="PNG")
     
     # Send request to the API
-    response = requests.post("http://localhost:5000/predict", data=img_binary.getvalue())
+    response = requests.post("http://annoy-db:5000/predict", data=img_binary.getvalue())
     recommended_titles = response.json()["recommendations"]
 
     recommended_movies = []
