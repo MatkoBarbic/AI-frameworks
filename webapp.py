@@ -11,7 +11,7 @@ def recommend_movie(image, radio, description):
     image.save(img_binary, format="PNG")
     
     # Send request to the API
-    response = requests.post("http://annoy-db:5000/poster_predict", data=img_binary.getvalue())
+    response = requests.post("http://localhost:5000/poster_predict", data=img_binary.getvalue())
     recommended_titles = response.json()["recommendations"]
 
     recommended_posters = []
@@ -20,7 +20,7 @@ def recommend_movie(image, radio, description):
     
 
     ## Description recommendations
-    response = requests.post("http://annoy-db:5000/description_predict", data={"radio": radio, "description": description})
+    response = requests.post("http://localhost:5000/description_predict", data={"radio": radio, "description": description})
     recommended_descriptions = list(response.json()["recommendations"])
     
     return recommended_posters + recommended_descriptions
@@ -28,11 +28,11 @@ def recommend_movie(image, radio, description):
 if __name__=='__main__':
 
     radio_input = gr.inputs.Radio(["Bag of words", "BARD"], label="Choose embedding technique:")
-    text_input = gr.inputs.Textbox(max_lines=100, placeholder="Enter Description Here", label="Description of movie")
+    text_input = gr.inputs.Textbox(placeholder="Enter Description Here", label="Description of movie")
 
     gr.Interface(fn=recommend_movie, 
                 inputs=["image", radio_input, text_input], 
-                outputs=[['image' for _ in range(5)] + [gr.outputs.Textbox() for _ in range (5)]],
+                outputs=['image' for _ in range(5)] + [gr.outputs.Textbox() for _ in range (5)],
                 live=True,
                 description="Upload the movie poster and description.",
                 ).launch(server_name="0.0.0.0", debug=True, share=True, server_port=7860)

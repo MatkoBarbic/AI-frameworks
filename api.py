@@ -9,11 +9,11 @@ from bard import model as text_model
 from annoy import AnnoyIndex
 import pandas as pd
 from transformers import DistilBertTokenizerFast
+import numpy as np
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 app = Flask(__name__)
-dim = 576
 k = 5
 
 posters_df = pd.read_csv("./movie_poster_paths.csv")
@@ -27,6 +27,7 @@ text_df = pd.read_csv("./movies_metadata.csv")
 
 @app.route('/poster_predict', methods=['POST'])
 def poster_predict():
+    dim = 576
     img_binary = request.data
     img_pil = Image.open(io.BytesIO(img_binary))
 
@@ -50,24 +51,26 @@ def poster_predict():
 
 @app.route('/description_predict', methods=['POST'])
 def description_predict():
-    description = request.data["description"]
-    radio = request.data["radio"]
-    
-    tensor = transform(description).to(device)
-    tensor = tensor.unsqueeze(0)  # Add batch dimension
+    dim = 768
+    description = request.form["description"]
+    radio = request.form["radio"]
 
     if radio == "Bag of words":
-        with torch.no_grad():
-            query_vector = bow(tensor)[0]
-
-        annoy_index = AnnoyIndex(dim, 'angular')
-        annoy_index.load('./description_embeddings_bow.ann')
+        pass
     
     else:
         tokenizer = DistilBertTokenizerFast.from_pretrained('distilbert-base-uncased')
-        tensor = tokenizer(tensor)
+        tensor = tokenizer(description, truncation=True, padding=True, return_tensors="pt")
+        data = {key: torch.tensor(val) for key, val in tensor.items()}
+
+        input_ids = data["input_ids"].to(device)
+        mask = data["attention_mask"].to(device)
+
+        text_model.eval()
         with torch.no_grad():
-            query_vector = text_model(tensor)[0]
+            _, emb, _ = text_model(input_ids, mask)
+
+        query_vector = np.array(emb[-1][:,0,:]).T
 
         annoy_index = AnnoyIndex(dim, 'angular')
         annoy_index.load('./description_embeddings_bard.ann')
