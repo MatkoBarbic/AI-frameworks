@@ -1,5 +1,6 @@
 from transformers import  DistilBertForSequenceClassification
 import torch.nn as nn
+import torch
 
 class BertClf(nn.Module):
 
@@ -28,3 +29,4 @@ distilbert = DistilBertForSequenceClassification.from_pretrained("distilbert-bas
                                                                   output_hidden_states=True)
 
 model = BertClf(distilbert)
+model.load_state_dict(torch.load("./models/distilbert_model_weights.pth", map_location=torch.device('cpu')))

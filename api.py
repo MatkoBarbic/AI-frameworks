@@ -10,6 +10,9 @@ from annoy import AnnoyIndex
 import pandas as pd
 from transformers import DistilBertTokenizerFast
 import numpy as np
+import joblib
+from stem_tokenizer import StemTokenizer
+
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -40,7 +43,7 @@ def poster_predict():
         query_vector = poster_model(tensor)[0]
 
     annoy_index = AnnoyIndex(dim, 'angular')
-    annoy_index.load('./rec_imdb.ann')
+    annoy_index.load('./embeddings/rec_imdb.ann')
 
     indices = annoy_index.get_nns_by_vector(query_vector, k)
 
@@ -51,14 +54,19 @@ def poster_predict():
 
 @app.route('/description_predict', methods=['POST'])
 def description_predict():
-    dim = 768
     description = request.form["description"]
     radio = request.form["radio"]
 
     if radio == "Bag of words":
-        pass
+        dim = 8164
+        tfidf = joblib.load('./models/fitted_tfidf_vectorizer.pkl')
+        query_vector = tfidf.transform([description]).toarray()[0]
+
+        annoy_index = AnnoyIndex(dim, 'angular')
+        annoy_index.load('./embeddings/description_embeddings_bow.ann')
     
     else:
+        dim = 768
         tokenizer = DistilBertTokenizerFast.from_pretrained('distilbert-base-uncased')
         tensor = tokenizer(description, truncation=True, padding=True, return_tensors="pt")
         data = {key: torch.tensor(val) for key, val in tensor.items()}
@@ -73,7 +81,7 @@ def description_predict():
         query_vector = np.array(emb[-1][:,0,:]).T
 
         annoy_index = AnnoyIndex(dim, 'angular')
-        annoy_index.load('./description_embeddings_bard.ann')
+        annoy_index.load('./embeddings/description_embeddings_bard.ann')
 
     indices = annoy_index.get_nns_by_vector(query_vector, k)
 
