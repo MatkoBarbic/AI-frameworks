@@ -11,6 +11,7 @@ def recommend_movie(image, radio, description):
     image.save(img_binary, format="PNG")
     
     # Send request to the API
+    # response = requests.post("http://localhost:5000/poster_predict", data=img_binary.getvalue())
     response = requests.post("http://annoy-db:5000/poster_predict", data=img_binary.getvalue())
     recommended_titles = response.json()["recommendations"]
 
@@ -20,6 +21,7 @@ def recommend_movie(image, radio, description):
     
 
     ## Description recommendations
+    # response = requests.post("http://localhost:5000/description_predict", data={"radio": radio, "description": description})
     response = requests.post("http://annoy-db:5000/description_predict", data={"radio": radio, "description": description})
     recommended_descriptions = list(response.json()["recommendations"])
     
